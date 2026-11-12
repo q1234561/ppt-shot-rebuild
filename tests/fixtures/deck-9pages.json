@@ -1,0 +1,89 @@
+{
+ "_note": "【测试/示例数据，不是默认配置】旧客户九页（P01 系列）的角色声明原件，2026-11-10 从 templates/deck.json 移到这里。用途只有两条：① roles / deckalign / pagetype 的回归夹具；② 给人看'一份完整声明长什么样'。**任何代码都不许把它当缺省值回退**——正式项目必须在自己的整套根目录放 deck.json，页清单与角色由项目自己声明。键 = 页面目录名（不是页路径、不是素材 key）。roles 里的 6 个键必须每页都有；值为 [] 表示「这一页确实没有这个件」，属合法，不算解析失败。",
+  "visual": "p01-series-v1",
+  "pages": [
+    "40-独立-P03病例导入-1108",
+    "41-独立-P07高危因素-1108",
+    "44-独立-P02课程导入-1108b",
+    "45-独立-P03病例导入-1109",
+    "46-独立-P04教学目标-1109",
+    "47-独立-P05核心病因-1109",
+    "48-独立-P08临床表现-1109",
+    "49-独立-P09查体要点-1109",
+    "page06"
+  ],
+  "roles": {
+    "40-独立-P03病例导入-1108": {
+      "nav": ["nav"],
+      "nav_pill": ["navpill"],
+      "div": ["sep1", "sep2", "sep3", "sep4", "sep5"],
+      "deco_l": ["ruleL"],
+      "deco_r": ["ruleR"],
+      "footer": ["t19", "t18"]
+    },
+    "41-独立-P07高危因素-1108": {
+      "nav": ["nav"],
+      "nav_pill": ["pill"],
+      "div": ["sep1", "sep2", "sep3", "sep4", "sep5"],
+      "deco_l": [],
+      "deco_r": [],
+      "footer": ["t_pg", "t_pgname"]
+    },
+    "44-独立-P02课程导入-1108b": {
+      "nav": ["c_nav"],
+      "nav_pill": ["c_navpill"],
+      "div": ["l_div1", "l_div2", "l_div3", "l_div4"],
+      "deco_l": ["l_titleL"],
+      "deco_r": ["l_titleR"],
+      "footer": ["t16"]
+    },
+    "45-独立-P03病例导入-1109": {
+      "nav": ["c_nav"],
+      "nav_pill": ["c_navpill"],
+      "div": ["l_nav1", "l_nav2", "l_nav3", "l_nav4", "l_nav5"],
+      "deco_l": [],
+      "deco_r": [],
+      "footer": ["t19", "t18"]
+    },
+    "46-独立-P04教学目标-1109": {
+      "nav": ["c_bar"],
+      "nav_pill": ["c_navpill"],
+      "div": ["c_div1", "c_div2", "c_div3", "c_div4", "c_div5", "c_div6"],
+      "deco_l": ["c_lineL"],
+      "deco_r": ["c_lineR"],
+      "footer": ["t17", "t18"]
+    },
+    "47-独立-P05核心病因-1109": {
+      "nav": ["c_navbar"],
+      "nav_pill": ["c_pill_active"],
+      "div": ["c_sep1", "c_sep2", "c_sep3", "c_sep4"],
+      "deco_l": [],
+      "deco_r": [],
+      "footer": ["t_p05", "t_foot"]
+    },
+    "48-独立-P08临床表现-1109": {
+      "nav": ["c_nav"],
+      "nav_pill": ["c_active"],
+      "div": ["c_div1", "c_div2", "c_div3", "c_div4", "c_div5"],
+      "deco_l": [],
+      "deco_r": [],
+      "footer": ["t19_pno", "t18_foot"]
+    },
+    "49-独立-P09查体要点-1109": {
+      "nav": ["c_nav"],
+      "nav_pill": ["c_nav_active"],
+      "div": ["c_div1", "c_div2", "c_div3", "c_div4", "c_div5"],
+      "deco_l": ["c_deco_l"],
+      "deco_r": ["c_deco_r"],
+      "footer": ["t_p09", "t_p09t"]
+    },
+    "page06": {
+      "nav": ["nav_panel"],
+      "nav_pill": ["nav_active"],
+      "div": [],
+      "deco_l": [],
+      "deco_r": [],
+      "footer": ["f1", "f2"]
+    }
+  }
+}

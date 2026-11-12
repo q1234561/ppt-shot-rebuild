@@ -1,0 +1,179 @@
+{
+ "_note": "【测试/示例数据，不是默认配置】旧客户 P01 系列的配色/字号常量源原件，2026-11-10 从 templates/visual.json 移到这里。只作示例与夹具；正式项目在自己的整套根目录放自己的 visual.json。token 写法是整串 {\"组.名\"}，例如 {\"palette.ink\"}；不许拼字符串。",
+ "series": "p01-series-v1",
+ "palette": {
+  "sky_120": "#D5E7F8",
+  "blue_700": "#0A55E0",
+  "sky_200": "#AEC8EC",
+  "sky_150": "#C6DDF5",
+  "white": "#FFFFFF",
+  "blue_400": "#5B8FD6",
+  "sky_300": "#9CC8FF",
+  "sky_100": "#D2E6FB",
+  "blue_600": "#0A6AFA",
+  "navy_900b": "#032C93",
+  "navy_900c": "#02319D",
+  "navy_900": "#03288F",
+  "ink": "#1A1A1A",
+  "bg_grad_01": "#E3F0FC",
+  "bg_grad_02": "#FCFEFF",
+  "bg_grad_03": "#DFEEFC",
+  "bg_grad_04": "#EEF7FE",
+  "bg_grad_05": "#E2F0FC",
+  "bg_grad_06": "#0996F6",
+  "bg_grad_07": "#0275DE",
+  "bg_grad_08": "#005FCD",
+  "bg_grad_09": "#0A88EF",
+  "bg_grad_10": "#C9DDF7",
+  "bg_grad_11": "#0A55E0",
+  "bg_grad_12": "#ECF5FF",
+  "bg_grad_13": "#F6FAFE",
+  "bg_grad_14": "#F9FCFF",
+  "bg_grad_15": "#CFE4FC",
+  "bg_grad_16": "#FBFDFF",
+  "bg_grad_17": "#1AC0FF",
+  "bg_grad_18": "#0B7DFA",
+  "bg_grad_19": "#14A6FC",
+  "bg_grad_20": "#7876FD",
+  "bg_grad_21": "#5949FB",
+  "bg_grad_22": "#6B55FF"
+ },
+ "type": {
+  "size": {
+   "t_m": 22.0,
+   "t_xs": 18.0,
+   "t_title": 46.6,
+   "t_xl": 28.0,
+   "t_s": 20.0,
+   "t_l": 24.0
+  },
+  "scale": [
+   16,
+   17,
+   18,
+   20,
+   22,
+   24,
+   28,
+   32
+  ],
+  "cap_pt": 33,
+  "max_snap_pt": 2,
+  "title_pt": 46,
+  "roles": {
+   "_note": "字号 = 画布高 × pct，再吸到最近档；放不下只许往下降。先定好看的，再兜底容量。；color 写调色板名，不写死 hex——字色也属于规范",
+   "title": {
+    "pct": 0.086,
+    "weight": "bold",
+    "color": "navy_900c"
+   },
+   "label": {
+    "pct": 0.052,
+    "weight": "bold",
+    "color": "white"
+   },
+   "body": {
+    "pct": 0.037,
+    "weight": "bold",
+    "color": "navy_900"
+   },
+   "nav": {
+    "pct": 0.032,
+    "weight": "regular",
+    "color": "navy_900b"
+   },
+   "nav_active": {
+    "pct": 0.037,
+    "weight": "bold",
+    "color": "white"
+   },
+   "footer": {
+    "pct": 0.0425,
+    "weight": "regular",
+    "color": "ink"
+   }
+  }
+ },
+ "radius": {
+  "pill": 40.0,
+  "chip": 37.0,
+  "card": 30.0,
+  "card_s": 18.0
+ },
+ "global": {
+  "_note": "一套的几何规范。只声明**位置**：宽高随标签文字与高亮胶囊变，拉平它只能改字号字距凑字宽（禁止）。",
+  "nav": {
+   "x0": 40,
+   "y0": 23,
+   "h": 80
+  },
+  "footer": {
+   "y0": 868,
+   "max_move_px": 20
+  }
+ },
+ "grid": {
+  "_note": "布局规范：位置由这些数算出来，不再抄参考图",
+  "margin": {
+   "left": 40,
+   "right": 40,
+   "top": 140,
+   "bottom": 73
+  },
+  "columns": 3,
+  "gutter": 18,
+  "card_padding": 32
+ },
+ "style": {
+  "_note": "样式也属于规范：值写调色板名。渐变的起止与方向决定观感，不能由布局器现编。",
+  "nav_bar": {
+   "gradient": [
+    "bg_grad_04",
+    "bg_grad_05"
+   ],
+   "angle": 0,
+   "radius": 40
+  },
+  "nav_pill": {
+   "gradient": [
+    "bg_grad_06",
+    "bg_grad_07",
+    "bg_grad_08",
+    "bg_grad_07",
+    "bg_grad_09"
+   ],
+   "angle": 90,
+   "radius": 40
+  },
+  "card": {
+   "fill": "FBFDFF",
+   "radius": 30
+  },
+  "tag": {
+   "blue": [
+    "bg_grad_17",
+    "bg_grad_18",
+    "bg_grad_19"
+   ],
+   "violet": [
+    "bg_grad_20",
+    "bg_grad_21",
+    "bg_grad_22"
+   ]
+  },
+  "card_glow": {
+   "gradient": [
+    "bg_grad_15",
+    "bg_grad_16",
+    "bg_grad_15"
+   ],
+   "angle": 90
+  },
+  "badge_halo": {
+   "fill": "sky_100"
+  },
+  "badge": {
+   "fill": "blue_600"
+  }
+ }
+}

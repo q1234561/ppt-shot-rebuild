@@ -1,0 +1,19 @@
+# ppt-shot-rebuild 依赖
+pillow>=10.0
+python-pptx>=0.6.23
+lxml>=4.9                          # build.py 写 effectLst/gradient 直接操作 XML
+numpy>=1.26
+opencv-python-headless>=4.9
+rapidocr-onnxruntime>=1.3          # extract.py：OCR（import 名 rapidocr_onnxruntime；首次运行自动下载模型）
+
+# 仅 cutout.py（复杂主体 AI 抠图）需要；圆形图标走 fastcut.py 不需要
+onnxruntime>=1.17
+
+# scipy：**只有** `assetcheck.py` 的 expect_cc 连通域计数还在用（`from scipy import ndimage`）。
+# 旧注释写的 `gate_v2.py` 的 C4 与 `edit_quality` 都已退役，两个模块现在都不碰 scipy；
+# 谁再把 scipy 从 assetcheck 里摘掉，这条依赖才该删。漏装会在 check_one 里 import 崩。
+scipy>=1.10
+
+# look.py 渲染需要 Windows 桌面版 PowerPoint（COM）
+# pywin32 是 look.py 的 import 前置：缺它连渲染入口都进不去（2026-11-06 补）
+pywin32>=306; sys_platform == "win32"
