@@ -49,7 +49,7 @@ S6 交付    四行说明 → deck.py 多页合成
 | 操作系统 | Windows 10 / 11 | 渲染与对账走 PowerPoint COM，macOS / Linux 不可用 |
 | PowerPoint | **桌面版 Microsoft PowerPoint** | 没有它就没有渲染回图，`cycle --mode delivery` 闭环跑不通（WPS 不能替代；`build` / `deck` 仍可用） |
 | Python | 3.10+，64 位 | 语法与 `onnxruntime` 依赖 |
-| 磁盘 | 不用 matting ≥ 20 MB；要 matting 再留 88 MB 给模型 | 依赖装不完，或模型加载失败 |
+| 磁盘 | 源码约 1.4 MB；含模型整仓约 90 MB | 空间不足装不完依赖 |
 
 ## 安装
 
@@ -76,7 +76,7 @@ S6 交付    四行说明 → deck.py 多页合成
 
    `PY` 必须是装了 `onnxruntime` 的那个解释器 —— 这是最常见的"环境阻塞"来源。
 
-4. **模型（只有 `mask:cutout` 用）** —— 88 MB，不在本仓库，见下文「抠图模型」。
+4. **模型** —— 已随仓库提供（`models/`，88 MiB），**无需任何操作**。只有 `mask:cutout` 用它，详见「抠图模型」。
 5. **首次联网一次** —— `extract.py` 第一次运行会下载 OCR 模型（约 15 MB），之后离线可用。
 
 ## 快速开始
@@ -127,31 +127,39 @@ $PY $D/cycle.py --page . --mode delivery --width 1920 --height 1080
 │   ├── extract.py            # 量：粗框 + OCR
 │   ├── build.py              # 建：写 OOXML
 │   ├── fastcut.py            # 8 条 α 路径
-│   ├── cutout.py             # AI matting（需模型）
+│   ├── cutout.py             # AI matting（模型已内置）
 │   ├── look.py               # 渲染回图（需 PowerPoint COM）
 │   ├── deck.py / deckalign.py / impose.py / ...
 │   └── delivery/             # cycle 主链、gates、spec_lint、verdict、report_state
+├── models/
+│   └── birefnet-lite-640-fp16.onnx   # 88 MiB，AI 抠图权重，已内置
 └── tests/                    # 23 个测试文件 + fixtures
 ```
 
-## 抠图模型
+## 抠图模型（已内置，开箱即用）
 
-`models/birefnet-lite-640-fp16.onnx`（92,467,487 字节）**不随仓库分发** —— 它是包体的 95%，
-放进 Git 会让每个版本都多 88 MB 历史。
+`models/birefnet-lite-640-fp16.onnx`（92,467,487 字节 / 88.2 MiB）**就在仓库里**，
+`git clone` 下来即可用，不需要额外下载、不需要配环境变量、不需要手动放文件。
 
-需要 matting 时放到下面任一位置，按优先级命中：
+它是 `mask:"cutout"` 这条 AI 抠图路径唯一的依赖，也是仓库体积的全部来源（占 98%）。
+**只改文字/形状、只走另外 7 条 α 路径的人，完全用不到它**，但留着不碍事。
+
+想把它挪到别处（比如多套 skill 共用一份），模型按下面优先级查找，先命中先用：
 
 | 优先级 | 位置 |
 |---|---|
 | 1 | 环境变量 `PPT_MATTE_MODEL=<绝对路径>`（设了就以它为准，指错不会悄悄回落） |
-| 2 | `<本目录>/models/birefnet-lite-640-fp16.onnx` |
+| 2 | `<本目录>/models/birefnet-lite-640-fp16.onnx` ← 仓库自带 |
 | 3 | `%LOCALAPPDATA%\ppt-shot-rebuild\models\` |
 | 4 | `<当前工作目录>/models/birefnet-lite-640-fp16.onnx` |
 
 四档都没有时，`cutout.py` 以**退出码 3** 打印中文指引，不抛调用栈。
-完整包（含模型）在 **[Releases · v2.57.4](https://github.com/q1234561/ppt-shot-rebuild/releases/tag/v2.57.4)** 页下载。
 
-**不用 matting 的页面完全不受影响** —— 8 条 α 路径没有一条 import `onnxruntime`。
+**不用 matting 的页面完全不受影响** —— 8 条 α 路径没有一条 import `onnxruntime`：
+`rect` / `feather` / `flat` / `chroma` / `circle` / `duotone` / `pictogram` / `rectmask`。
+
+不想用 git 的人可以在 **[Releases · v2.57.4](https://github.com/q1234561/ppt-shot-rebuild/releases/tag/v2.57.4)** 页
+下载同一个完整包（zip，解压即用）。
 
 ## 文档索引
 
