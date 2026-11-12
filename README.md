@@ -149,7 +149,7 @@ $PY $D/cycle.py --page . --mode delivery --width 1920 --height 1080
 | 4 | `<当前工作目录>/models/birefnet-lite-640-fp16.onnx` |
 
 四档都没有时，`cutout.py` 以**退出码 3** 打印中文指引，不抛调用栈。
-完整包（含模型）在仓库的 **Releases** 页下载。
+完整包（含模型）在 **[Releases · v2.57.4](https://github.com/q1234561/ppt-shot-rebuild/releases/tag/v2.57.4)** 页下载。
 
 **不用 matting 的页面完全不受影响** —— 8 条 α 路径没有一条 import `onnxruntime`。
 
