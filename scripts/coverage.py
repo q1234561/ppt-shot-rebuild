@@ -78,7 +78,7 @@ def estimate_bg(rgb: np.ndarray) -> tuple[np.ndarray, dict]:
     }
 
 
-def product_ids(page: Path, out_name: str = "out.pptx") -> tuple[set[str] | None, str]:
+def product_ids(page: Path, out_name: str = "out.pptx", pptx_path: Path | None = None) -> tuple[set[str] | None, str]:
     """成品里**实际存在**的对象 id 集合；(None, 原因) 表示没有可读成品。
 
     为什么必须问成品（2026-11-10）：spec 里的 bbox 是"打算画什么"，不是"画出来了什么"。
@@ -91,13 +91,15 @@ def product_ids(page: Path, out_name: str = "out.pptx") -> tuple[set[str] | None
     取值走 `consts.shape_id`（cNvPr@title 优先，否则 name），与 presence 闸同一处实现，
     否则 spec 起了自定义 name 的页会在这里全被判成"没产出"。
     """
-    p = Path(page) / out_name
+    p = Path(pptx_path).resolve() if pptx_path is not None else (Path(page) / out_name)
     if not p.exists():
-        return None, f"缺 {out_name}（没有成品可比）"
+        return None, f"缺 {p.name}（没有成品可比）"
     try:
         from pptx import Presentation
         from consts import shape_id
         prs = Presentation(str(p))
+        if not prs.slides:
+            return None, "成品没有任何幻灯片"
         return {shape_id(sh) for sh in prs.slides[0].shapes}, "pptx"
     except Exception as exc:                     # noqa: BLE001
         return None, f"成品读不出来：{exc}"
@@ -161,12 +163,14 @@ def whitelist_mask(rects: list[list[float]], shape) -> np.ndarray:
     return m.astype(bool)
 
 
-def run(page: Path, whitelist_path: Path | None, min_frac: float, ink_diff: int) -> dict:
+def run(page: Path, whitelist_path: Path | None, min_frac: float, ink_diff: int,
+        *, spec_path: Path | None = None, pptx_path: Path | None = None) -> dict:
     # 必须读**合并视图**：fastcut 把生成的 src 写进 override.json，spec.json 保持只读。
     # 只读 spec 会让"已经产出的素材"看起来永远没有 src → 被当成候选排除掉（实测 bug）。
     import specmerge
-    spec = specmerge.load_merged(page / "spec.json", quiet=True)
-    ref_p = page / "reference.png"
+    sp = Path(spec_path).resolve() if spec_path is not None else (Path(page).resolve() / "spec.json")
+    spec = specmerge.load_merged(sp, quiet=True)
+    ref_p = sp.parent / "reference.png"
     # cv2.imread 在 Windows 上读不了非 ASCII 路径（中文目录名直接返回 None），
     # 先用 np.fromfile 读字节再 imdecode——这是本机目录全是中文的必须写法。
     buf = np.fromfile(str(ref_p), dtype=np.uint8)
@@ -180,7 +184,9 @@ def run(page: Path, whitelist_path: Path | None, min_frac: float, ink_diff: int)
     ink = diff > ink_diff
 
     # 只有**成品里实际存在**的对象才算已覆盖（2026-11-10，见 product_ids 的注释）
-    keep, basis = product_ids(page)
+    keep, basis = product_ids(page, pptx_path=pptx_path)
+    if pptx_path is not None and keep is None:
+        raise SystemExit(f"显式成品不可用：{basis}")
     boxes = spec_boxes(spec, keep)
     skipped = skipped_boxes(spec, keep)
 
@@ -282,6 +288,8 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--page", required=True)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--spec", default=None, help="显式 spec 路径（默认 <page>/spec.json）")
+    ap.add_argument("--pptx", default=None, help="显式成品 PPTX 路径（默认读 <page>/out.pptx，失败不退回 spec-only）")
     ap.add_argument("--whitelist", default=None, help="人写的背景白名单（{\"rects\": [[x0,y0,x1,y1], …]}）")
     ap.add_argument("--min-frac", type=float, default=MIN_FRAC)
     ap.add_argument("--ink-diff", type=int, default=INK_DIFF)
@@ -291,7 +299,10 @@ def main() -> int:
     args = ap.parse_args()
 
     page = Path(args.page)
-    rep = run(page, Path(args.whitelist) if args.whitelist else None, args.min_frac, args.ink_diff)
+    spec_arg = Path(args.spec).resolve() if args.spec else None
+    pptx_arg = Path(args.pptx).resolve() if args.pptx else None
+    rep = run(page, Path(args.whitelist) if args.whitelist else None, args.min_frac, args.ink_diff,
+              spec_path=spec_arg, pptx_path=pptx_arg)
     out = Path(args.out) if args.out else page / "_check" / "coverage.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rep, ensure_ascii=False, indent=1), encoding="utf-8")

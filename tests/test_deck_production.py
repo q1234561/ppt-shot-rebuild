@@ -242,6 +242,40 @@ class DeckProductionTest(unittest.TestCase):
             self.assertEqual(slide_texts(out), ["ONE", "TWO"], "草稿入口按目录名排序")
 
 
+    def test_whitelist_change_invalidates_verdict(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            page = make_page(root, "p1", "ONE")
+            deck_json(root, ["p1"])
+            seed_verified(page)
+            out = root / "final.pptx"
+            self.assertEqual(run_deck(root, out).returncode, 0)
+            old_bytes = out.read_bytes()
+
+            # 1) 新增白名单 -> 必须拒绝且不覆盖目标
+            wl = page / "coverage_whitelist.json"
+            _write(wl, {"rects": [[0, 0, 10, 10]]})
+            r1 = run_deck(root, out)
+            self.assertNotEqual(r1.returncode, 0, "新增白名单后旧结论必须失效")
+            self.assertEqual(out.read_bytes(), old_bytes)
+
+            # 含白名单重签 -> 正常通过
+            seed_verified(page)
+            self.assertEqual(run_deck(root, out).returncode, 0)
+            old_bytes2 = out.read_bytes()
+
+            # 2) 修改白名单 -> 必须拒绝且不覆盖目标
+            _write(wl, {"rects": [[0, 0, 20, 20]]})
+            r2 = run_deck(root, out)
+            self.assertNotEqual(r2.returncode, 0, "修改白名单后旧结论必须失效")
+            self.assertEqual(out.read_bytes(), old_bytes2)
+
+            # 3) 删除白名单 -> 必须拒绝且不覆盖目标
+            wl.unlink()
+            r3 = run_deck(root, out)
+            self.assertNotEqual(r3.returncode, 0, "删除白名单后旧结论必须失效")
+            self.assertEqual(out.read_bytes(), old_bytes2)
+
 def _patch_cycle(page: Path, patch: dict) -> None:
     p = page / "_check" / "cycle.json"
     doc = json.loads(p.read_text(encoding="utf-8"))

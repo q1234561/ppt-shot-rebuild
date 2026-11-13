@@ -378,10 +378,15 @@ def page_inputs_digest(page_dir, spec_path) -> str:
             if cand.exists():
                 norms[f"{cand.parent.name}/{name}"] = file_digest(cand)
                 break
-    return digest({"ref": file_digest(sd / "reference.png"),
-                   "spec": view, "assets": assets,
-                   "canvas": view.get("canvas"),
-                   "norms": norms})
+    payload = {"ref": file_digest(sd / "reference.png"),
+               "spec": view, "assets": assets,
+               "canvas": view.get("canvas"),
+               "norms": norms}
+    wl = Path(page_dir) / "coverage_whitelist.json"
+    if wl.exists():
+        # 区分不存在与存在但不可读：不可读绝不当成从未有白名单
+        payload["whitelist"] = file_digest(wl) or "UNREADABLE"
+    return digest(payload)
 
 
 def key_presence(spec_path, out_path) -> str:

@@ -71,7 +71,7 @@ EXIT_NO_MODEL = 3
 #   `overflow-check`（assets 段之后的 0 轮求解，跟着 assets 跑）、
 #   `spec:promote`（只在整跑时执行——半跑绝不写 spec.json）、
 #   `assets:regenerate` 与 `assets:provenance` 在同一个函数里，见 `want()`。
-PHASE_NAMES = ("assets:provenance", "assets:regenerate", "plan", "assets",
+PHASE_NAMES = ("assets:provenance", "assets:regenerate", "normalize", "plan", "assets",
                "build", "look", "presence", "editability", "coverage", "delivery")
 
 # 阶段表里"给眼睛看的"状态名。机器读的是 status 原值（cycle.json 里不改），
@@ -970,7 +970,8 @@ def _stage_coverage(ctx: _Ctx) -> None:
     wl = Path(page) / "coverage_whitelist.json"
     rep_path = check_dir / "coverage.json"
     before = rep_path.stat().st_mtime_ns if rep_path.exists() else None
-    cmd = [PY, SKILL / "scripts" / "coverage.py", "--page", page, "--check"]
+    cmd = [PY, SKILL / "scripts" / "coverage.py", "--page", page,
+           "--spec", ctx.spec_path, "--pptx", ctx.out_path, "--out", rep_path, "--check"]
     if wl.exists():
         cmd += ["--whitelist", str(wl)]
     rc, out, secs = run(cmd, 180)

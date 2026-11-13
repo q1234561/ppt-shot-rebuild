@@ -148,6 +148,13 @@ def main() -> int:
         print(f"FAIL 文档不存在：{doc}")
         return 1
     text = doc.read_text(encoding="utf-8")
+    # 沿主文档中的明确链接扫描 references/*.md，避免拆出参考文档后 L1~L8 失效
+    for rel_md in sorted(set(re.findall(r"\((references/[A-Za-z0-9_.-]+\.md)\)", text))):
+        rp = doc.parent / rel_md
+        if not rp.exists():
+            rp = HERE.parent / rel_md
+        if rp.exists():
+            text += "\n" + rp.read_text(encoding="utf-8")
     fails, lines = [], []
 
     # L1 / L2
@@ -221,7 +228,7 @@ def main() -> int:
     # L10 命令行里的脚本-参数必须匹配到那个脚本
     wrong = []
     for block in _code_blocks(text):
-        for m in re.finditer(r"\$(?:S|D)/([a-z0-9_]+\.py)([^\n]*)", block):
+        for m in re.finditer(r"(?:\$(?:S|D)|\$skillRoot/scripts(?:/delivery)?)/([a-z0-9_]+\.py)([^\n]*)", block):
             name, tail = m.group(1), m.group(2)
             py = HERE / name if (HERE / name).exists() else HERE / "delivery" / name
             if not py.exists():

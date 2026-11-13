@@ -180,5 +180,63 @@ class CoverageStageFourStatesTest(unittest.TestCase):
                             "执行错误不能悄悄变成通过")
 
 
+
+
+class CoverageExplicitTargetTest(unittest.TestCase):
+    """1A: coverage 必须读取 --out / --spec 指定的成品与规格，不退回默认路径或 spec-only。"""
+
+    def test_cycle_uses_explicit_out_pptx(self):
+        from pptx import Presentation
+        with tempfile.TemporaryDirectory() as td:
+            page = _page(Path(td), {"id": "ill", "mask": "rect", "bbox": ILL})
+            _prepare(page)
+            # 复制 out.pptx 为 out2.pptx 并删掉 ill 形状
+            out2 = page / "out2.pptx"
+            prs = Presentation(str(page / "out.pptx"))
+            sp_tree = prs.slides[0].shapes._spTree
+            for sh in list(prs.slides[0].shapes):
+                if getattr(sh, "name", "") == "ill" or "ill" in (sh._element.xml or ""):
+                    sp_tree.remove(sh._element)
+            prs.save(str(out2))
+            _write(page / "coverage_whitelist.json", {"rects": []})
+            r = _run(ROOT / "scripts" / "delivery" / "cycle.py", "--page", page,
+                     "--mode", "delivery", "--only", "coverage", "--out", out2.name)
+            doc = json.loads((page / "_check" / "cycle.json").read_text(encoding="utf-8"))
+            ph = next(p for p in doc["phases"] if p["name"] == "coverage")
+            rep = json.loads((page / "_check" / "coverage.json").read_text(encoding="utf-8"))
+            self.assertEqual(rep["boxes_basis"]["mode"], "pptx")
+            self.assertTrue(_touches(rep, ILL), f"删掉 ill 的 out2.pptx 必须报出残差：{rep['blocks']}")
+            self.assertEqual(ph["status"], "fail", r.stdout)
+            self.assertTrue([f for f in doc["to_fix"] if f.get("blocking", True)])
+
+    def test_explicit_missing_or_corrupt_pptx_is_error(self):
+        with tempfile.TemporaryDirectory() as td:
+            page = _page(Path(td), {"id": "ill", "mask": "rect", "bbox": ILL})
+            _prepare(page)
+            corrupt = page / "corrupt.pptx"
+            corrupt.write_bytes(b"not-a-pptx")
+            for target in ("missing.pptx", "corrupt.pptx"):
+                with self.subTest(target):
+                    r = _run(ROOT / "scripts" / "delivery" / "cycle.py", "--page", page,
+                             "--mode", "delivery", "--only", "coverage", "--out", target)
+                    doc = json.loads((page / "_check" / "cycle.json").read_text(encoding="utf-8"))
+                    ph = next(p for p in doc["phases"] if p["name"] == "coverage")
+                    self.assertEqual(ph["status"], "error", f"{target} 必须报 error：{r.stdout}")
+
+    def test_explicit_spec_in_subdir(self):
+        with tempfile.TemporaryDirectory() as td:
+            page = _page(Path(td), {"id": "ill", "mask": "rect", "bbox": ILL})
+            _prepare(page)
+            sub = page / "sub"
+            sub.mkdir()
+            (sub / "custom.json").write_text((page / "spec.json").read_text(encoding="utf-8"), encoding="utf-8")
+            (sub / "reference.png").write_bytes((page / "reference.png").read_bytes())
+            r = _run(ROOT / "scripts" / "coverage.py", "--page", page,
+                     "--spec", sub / "custom.json", "--pptx", page / "out.pptx")
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            rep = json.loads((page / "_check" / "coverage.json").read_text(encoding="utf-8"))
+            self.assertEqual(rep["boxes_basis"]["mode"], "pptx")
+            self.assertEqual(rep["status"], "pass")
+
 if __name__ == "__main__":
     unittest.main()
